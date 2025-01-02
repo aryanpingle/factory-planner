@@ -33,9 +33,30 @@ export function getRectLinePoints(
     startBlock: Direction,
     end: Point,
     endBlock: Direction,
-) {
+): Point[] {
     if (isWeirdRectLineSituation(start, startBlock, end, endBlock)) {
-        throw new Error("FUCKING SHIT");
+        const delta = end.sub(start);
+
+        const dh = new Point(Math.sign(delta.x), 0);
+        const dv = new Point(0, Math.sign(delta.y));
+
+        let chosenD: Point;
+        if (dh.equals(startBlock)) {
+            chosenD = dv.mult(2);
+        } else {
+            chosenD = dh.mult(2);
+        }
+
+        // The firstPoint is a step in the right direction (literally)
+        const firstPoint = start.add(chosenD);
+        // Then we can create a two-segment line as normal to the end
+        const normalRectLinePoints = getRectLinePoints(
+            firstPoint,
+            chosenD.mult(-1),
+            end,
+            endBlock,
+        );
+        return [start, ...normalRectLinePoints];
     }
 
     const d = getDirectionsTo(start, end);
