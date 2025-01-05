@@ -1,10 +1,10 @@
 import Point from "@mapbox/point-geometry";
-import { Canvas } from "../canvas";
-import { IOConstruct, IOConstructParams } from "./ioconstruct";
-import { SocketOutput } from "./socket";
-import { EntityManager } from "./entity";
-import { PartId } from "../database-types";
-import { Directions } from "../utils";
+import { Canvas } from "../../canvas";
+import { IOConstruct, IOConstructParams } from "../ioconstruct";
+import { SocketOutput, SocketPartType } from "../socket";
+import { EntityManager } from "../entity";
+import { PartId } from "../../database-types";
+import { Directions } from "../../utils";
 
 const socketInputConfigs: IOConstructParams["socketInputConfigs"] = [
     {
@@ -23,6 +23,7 @@ const socketInputConfigs: IOConstructParams["socketInputConfigs"] = [
         direction: Directions.DOWN,
     },
 ];
+
 const socketOutputConfigs: IOConstructParams["socketOutputConfigs"] = [
     {
         partType: "solid",
@@ -38,7 +39,9 @@ export class Merger extends IOConstruct {
 
     output: SocketOutput;
 
-    constructor(manager: EntityManager) {
+    constructor(manager: EntityManager, ioType: SocketPartType) {
+        socketInputConfigs.forEach((config) => (config.partType = ioType));
+        socketOutputConfigs.forEach((config) => (config.partType = ioType));
         super(manager, socketInputConfigs, socketOutputConfigs);
 
         this.output = this.outputs[0];

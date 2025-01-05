@@ -1,9 +1,9 @@
 import Point from "@mapbox/point-geometry";
-import { Canvas } from "../canvas";
-import { IOConstruct, IOConstructParams } from "./ioconstruct";
-import { EntityManager } from "./entity";
-import { SocketInput } from "./socket";
-import { Directions } from "../utils";
+import { Canvas } from "../../canvas";
+import { IOConstruct, IOConstructParams } from "../ioconstruct";
+import { EntityManager } from "../entity";
+import { SocketInput } from "../socket";
+import { Directions } from "../../utils";
 
 const socketInputConfigs: IOConstructParams["socketInputConfigs"] = [
     {

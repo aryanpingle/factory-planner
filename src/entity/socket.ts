@@ -1,7 +1,13 @@
 import { Canvas } from "../canvas";
-import { Colors } from "../constants";
+import { Colors, SOCKET_SIZE } from "../constants";
 import { PartId } from "../database-types";
-import { Direction, Directions, Rectangle, withMaxDecimal } from "../utils";
+import {
+    Direction,
+    Directions,
+    fillCircle,
+    Rectangle,
+    withMaxDecimal,
+} from "../utils";
 import { Entity, EntityManager } from "./entity";
 import { IOConstruct } from "./ioconstruct";
 
@@ -83,7 +89,13 @@ export abstract class Socket extends Entity {
         }
 
         const rect = this.getBoundingRect();
-        ctx.fillRect(...rect.xywh());
+
+        if (this.acceptType === "solid") {
+            ctx.fillRect(...rect.xywh());
+        } else {
+            const center = rect.getCenter();
+            fillCircle(ctx, center.x, center.y, SOCKET_SIZE / 2);
+        }
 
         if (this.partId !== undefined) {
             const center = rect.getCenter();

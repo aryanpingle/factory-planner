@@ -1,11 +1,11 @@
 import Point from "@mapbox/point-geometry";
-import { Canvas } from "../canvas";
-import { FOUNDATION_SIZE } from "../constants";
-import { PartId } from "../database-types";
-import { EntityManager } from "./entity";
-import { IOConstruct, IOConstructParams } from "./ioconstruct";
-import { SocketInput } from "./socket";
-import { Directions, withMaxDecimal } from "../utils";
+import { Canvas } from "../../canvas";
+import { FOUNDATION_SIZE } from "../../constants";
+import { PartId } from "../../database-types";
+import { EntityManager } from "../entity";
+import { IOConstruct, IOConstructParams } from "../ioconstruct";
+import { SocketInput } from "../socket";
+import { Directions, withMaxDecimal } from "../../utils";
 
 const socketInputConfigs: IOConstructParams["socketInputConfigs"] = [
     {

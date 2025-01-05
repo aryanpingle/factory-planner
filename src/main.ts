@@ -12,14 +12,14 @@ import {
     SOCKET_SIZE,
 } from "./constants";
 import { Constructor } from "./entity/machines";
-import { Supply } from "./entity/supply";
+import { Supply } from "./entity/ioconstructs/supply";
 import { Socket } from "./entity/socket";
 import { ConnectionState } from "./state";
 import { SatisfactoryGraph } from "./graph";
-import { Splitter } from "./entity/splitter";
+import { Splitter } from "./entity/ioconstructs/splitter";
 import debounce from "debounce";
-import { Merger } from "./entity/merger";
-import { Sink } from "./entity/sink";
+import { Merger } from "./entity/ioconstructs/merger";
+import { Sink } from "./entity/ioconstructs/sink";
 
 export class App {
     canvas: Canvas;
@@ -77,7 +77,7 @@ export class App {
         supply.coords = new Point(-3 * FOUNDATION_SIZE, 0);
 
         for (let i = 0; i < 2; ++i) {
-            const merger = new Merger(this.entityManager);
+            const merger = new Merger(this.entityManager, "fluid");
             merger.coords = new Point(0, -1 * FOUNDATION_SIZE * i);
         }
 
@@ -134,7 +134,7 @@ export class App {
             Socket.connect(splitter.outputs[1], constructor.inputs[0]);
 
             // Merger
-            const merger = new Merger(this.entityManager);
+            const merger = new Merger(this.entityManager, "solid");
             merger.coords = new Point(+1.5 * FOUNDATION_SIZE, y);
             mergers.push(merger);
 
