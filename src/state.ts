@@ -14,94 +14,45 @@ export type EventName =
     | "scroll"
     | "zoom";
 
-export class StateFactory {
-    static createIdleState(): IdleState {
-        return {
-            name: "idle",
-        };
-    }
-
-    static createSelectingState(coords: Point): SelectingState {
-        return {
-            name: "selecting",
-            startCoords: coords,
-            endCoords: coords,
-        };
-    }
-
-    static createSelectionState(selection: EntityId[]): SelectionState {
-        return {
-            name: "selection",
-            selectedIds: selection,
-        };
-    }
-
-    static createRelocatingState(
-        selection: EntityId[],
-        selectionCoords: Point[],
-        coords: Point,
-    ): RelocatingState {
-        return {
-            name: "relocating",
-            selectedIds: selection,
-            selectedEntityCoords: selectionCoords,
-            startMouseCoords: coords,
-        };
-    }
-
-    static createPanningState(
-        coords: Point,
-        currentState: State,
-    ): PanningState {
-        return {
-            name: "panning",
-            startCoords: coords,
-            previousState: currentState,
-        };
-    }
-
-    static createConnectionState(
-        socket: Socket,
-        mouseCoords: Point,
-    ): ConnectionState {
-        return {
-            name: "connection",
-            socket: socket,
-            mouseCoords: mouseCoords,
-        };
-    }
+export enum StateName {
+    IDLE = "idle",
+    SELECTING = "selecting",
+    SELECTION = "selection",
+    RELOCATING = "relocating",
+    PANNING = "panning",
+    CONNECTION = "connection",
 }
 
 export interface IdleState {
-    name: "idle";
+    name: StateName.IDLE;
 }
 
 export interface SelectingState {
-    name: "selecting";
+    name: StateName.SELECTING;
     startCoords: Point;
     endCoords: Point;
 }
 
 export interface SelectionState {
-    name: "selection";
+    name: StateName.SELECTION;
     selectedIds: EntityId[];
 }
 
 export interface RelocatingState {
-    name: "relocating";
+    name: StateName.RELOCATING;
     selectedIds: EntityId[];
     selectedEntityCoords: Point[];
     startMouseCoords: Point;
 }
 
 export interface PanningState {
-    name: "panning";
+    name: StateName.PANNING;
     startCoords: Point;
     previousState: State;
 }
 
 export interface ConnectionState {
-    name: "connection";
+    name: StateName.CONNECTION;
     socket: Socket;
     mouseCoords: Point;
 }
@@ -114,4 +65,60 @@ export type State =
     | PanningState
     | ConnectionState;
 
-export type StateName = State["name"];
+export class StateFactory {
+    static createIdleState(): IdleState {
+        return {
+            name: StateName.IDLE,
+        };
+    }
+
+    static createSelectingState(coords: Point): SelectingState {
+        return {
+            name: StateName.SELECTING,
+            startCoords: coords,
+            endCoords: coords,
+        };
+    }
+
+    static createSelectionState(selection: EntityId[]): SelectionState {
+        return {
+            name: StateName.SELECTION,
+            selectedIds: selection,
+        };
+    }
+
+    static createRelocatingState(
+        selection: EntityId[],
+        selectionCoords: Point[],
+        coords: Point,
+    ): RelocatingState {
+        return {
+            name: StateName.RELOCATING,
+            selectedIds: selection,
+            selectedEntityCoords: selectionCoords,
+            startMouseCoords: coords,
+        };
+    }
+
+    static createPanningState(
+        coords: Point,
+        currentState: State,
+    ): PanningState {
+        return {
+            name: StateName.PANNING,
+            startCoords: coords,
+            previousState: currentState,
+        };
+    }
+
+    static createConnectionState(
+        socket: Socket,
+        mouseCoords: Point,
+    ): ConnectionState {
+        return {
+            name: StateName.CONNECTION,
+            socket: socket,
+            mouseCoords: mouseCoords,
+        };
+    }
+}

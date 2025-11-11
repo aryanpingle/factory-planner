@@ -46,7 +46,7 @@ export class StateManager {
     triggerEvent(eventName: EventName, ...args: any[]) {
         const stateName = this.currentState.name;
 
-        const stateTransitions = this.transitionTable[stateName as StateName];
+        const stateTransitions = this.transitionTable[stateName];
 
         if (stateTransitions === undefined) {
             // throw new Error(
