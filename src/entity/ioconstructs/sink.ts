@@ -5,7 +5,8 @@ import { PartId } from "../../database-types";
 import { EntityManager } from "../entity";
 import { IOConstruct, IOConstructParams } from "../ioconstruct";
 import { SocketInput } from "../socket";
-import { Directions, withMaxDecimal } from "../../utils";
+import { Directions, Rectangle, withMaxDecimal } from "../../utils";
+import { Database } from "../../database";
 
 const socketInputConfigs: IOConstructParams["socketInputConfigs"] = [
     {
@@ -21,9 +22,6 @@ export class Sink extends IOConstruct {
     height: number = FOUNDATION_SIZE;
 
     input: SocketInput;
-
-    partId?: PartId;
-    flow: number = 0;
 
     constructor(manager: EntityManager) {
         super(manager, socketInputConfigs, []);
@@ -41,17 +39,24 @@ export class Sink extends IOConstruct {
         const center = this.getBoundingRect().getCenter();
         ctx.font = "normal 0.5px monospace";
         ctx.fillStyle = "black";
-        ctx.fillText(withMaxDecimal(this.flow, 4), center.x, center.y);
+        ctx.fillText(withMaxDecimal(this.input.flow, 4), center.x, center.y);
+
+        // Draw the part
+        const icon = Database.getPartIcon(this.input.partId);
+        const iconScale = 0.75;
+        const iconRect = Rectangle.fromCenter(
+            this.coords,
+            iconScale * this.width,
+            iconScale * this.height,
+        );
+        ctx.drawImage(icon, ...iconRect.xywh());
     }
 
     staticAnalysis(): void {
         this.input.setMaxPermitted(Number.POSITIVE_INFINITY);
     }
 
-    balance(): void {
-        this.partId = this.input.partId;
-        this.flow = this.input.flow;
-    }
+    balance(): void {}
 
     getOperatingInformation(): Object {
         return {

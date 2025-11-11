@@ -1,5 +1,6 @@
 import { Canvas } from "../canvas";
 import { Colors, SOCKET_SIZE } from "../constants";
+import { Database } from "../database";
 import { PartId } from "../database-types";
 import {
     Direction,
@@ -97,6 +98,25 @@ export abstract class Socket extends Entity {
             fillCircle(ctx, center.x, center.y, SOCKET_SIZE / 2);
         }
 
+        // Draw the part icon
+        if (this.partId !== undefined) {
+            const iconScale = 0.75;
+            const icon = Database.getPartIcon(this.partId);
+            const r = Rectangle.fromCenter(
+                rect.getCenter(),
+                this.width * iconScale,
+                this.height * iconScale,
+            );
+            ctx.drawImage(
+                icon,
+                r.x1,
+                r.y1,
+                this.width * iconScale,
+                this.height * iconScale,
+            );
+        }
+
+        // Draw the part flow rate
         if (this.partId !== undefined) {
             const center = rect.getCenter();
             ctx.font = "normal 0.5px monospace";

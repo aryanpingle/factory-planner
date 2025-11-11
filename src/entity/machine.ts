@@ -52,6 +52,7 @@ export abstract class Machine extends IOConstruct {
             console.warn(
                 `${this.constructName} [${this.id}] does not have the correct inputs set.`,
             );
+            this.debug(this.getInputPFD());
             this.outputs.forEach((s) => s.propagate(undefined, 0));
             return;
         }
@@ -163,6 +164,18 @@ export abstract class Machine extends IOConstruct {
         });
     }
 
+    getOperatingEfficiency(): number | undefined {
+        if (this.recipeId === undefined) return undefined;
+
+        const r = Database.getProductPFD(this.recipe!);
+        const o = this.getOutputPFD();
+        const parts = r.getParts();
+        let minRatio = Math.min(
+            ...parts.map((partId) => o.get(partId)! / r.get(partId)!),
+        );
+        return minRatio;
+    }
+
     getOperatingInformation(): Object {
         const inputPFD = this.getInputPFD();
         const outputPFD = this.getOutputPFD();
@@ -176,6 +189,7 @@ export abstract class Machine extends IOConstruct {
             inputPFD: inputPFD,
             outputs: this.outputs,
             outputPFD: outputPFD,
+            efficiency: this.getOperatingEfficiency(),
         };
     }
 }

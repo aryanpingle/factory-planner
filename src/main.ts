@@ -5,12 +5,7 @@ import { Canvas } from "./canvas";
 import { EntityManager } from "./entity/entity";
 import { StateManager } from "./stateManager";
 import { setupStateManagement } from "./events";
-import {
-    Colors,
-    FOUNDATION_SIZE,
-    SOCKET_ENTITY_NAME,
-    SOCKET_SIZE,
-} from "./constants";
+import { Colors, FOUNDATION_SIZE, SOCKET_ENTITY_NAME } from "./constants";
 import { Constructor } from "./entity/machines";
 import { Supply } from "./entity/ioconstructs/supply";
 import { Socket } from "./entity/socket";
@@ -20,6 +15,8 @@ import { Splitter } from "./entity/ioconstructs/splitter";
 import debounce from "debounce";
 import { Merger } from "./entity/ioconstructs/merger";
 import { Sink } from "./entity/ioconstructs/sink";
+import { Refinery } from "./entity/machines/refinery";
+import { Database } from "./database";
 
 export class App {
     canvas: Canvas;
@@ -50,7 +47,64 @@ export class App {
             this.canvas.height / 2,
         );
 
-        this.load1To5();
+        this.loadBauxiteShit();
+    }
+
+    loadBauxiteShit() {
+        const waterSupply = new Supply(this.entityManager);
+        waterSupply.setPartAndFlow("Desc_Water_C", 300);
+        waterSupply.coords = new Point(
+            -3 * FOUNDATION_SIZE,
+            -1 * FOUNDATION_SIZE,
+        );
+
+        const waterMerger = new Merger(this.entityManager, "fluid");
+        waterMerger.coords = new Point(
+            -1.5 * FOUNDATION_SIZE,
+            -1 * FOUNDATION_SIZE,
+        );
+
+        const bauxiteSupply = new Supply(this.entityManager);
+        bauxiteSupply.setPartAndFlow("Desc_OreBauxite_C", 240);
+        bauxiteSupply.coords = new Point(
+            -3 * FOUNDATION_SIZE,
+            +1 * FOUNDATION_SIZE,
+        );
+
+        const ref1 = new Refinery(this.entityManager);
+        ref1.setRecipe("Recipe_AluminaSolution_C");
+        ref1.coords = new Point(+1 * FOUNDATION_SIZE, 0);
+
+        const sink1 = new Sink(this.entityManager);
+        sink1.coords = new Point(
+            +3.5 * FOUNDATION_SIZE,
+            +3.5 * FOUNDATION_SIZE,
+        );
+
+        const coalSupply = new Supply(this.entityManager);
+        coalSupply.setPartAndFlow("Desc_Coal_C", 240);
+        coalSupply.coords = new Point(
+            +4 * FOUNDATION_SIZE,
+            +2 * FOUNDATION_SIZE,
+        );
+
+        const ref2 = new Refinery(this.entityManager);
+        ref2.setRecipe("Recipe_AluminumScrap_C");
+        ref2.coords = new Point(+5 * FOUNDATION_SIZE, 0);
+
+        const sink2 = new Sink(this.entityManager);
+        sink2.coords = new Point(+7 * FOUNDATION_SIZE, +2 * FOUNDATION_SIZE);
+
+        Socket.connect(waterSupply.output, waterMerger.inputs[1]);
+        Socket.connect(waterMerger.output, ref1.inputs[0]);
+        Socket.connect(bauxiteSupply.output, ref1.inputs[1]);
+        Socket.connect(ref1.outputs[1], sink1.input);
+        Socket.connect(ref1.outputs[0], ref2.inputs[0]);
+        Socket.connect(coalSupply.output, ref2.inputs[1]);
+        Socket.connect(ref2.outputs[0], waterMerger.inputs[0]);
+        Socket.connect(ref2.outputs[1], sink2.input);
+
+        this.graph.initializeConstructs();
     }
 
     loadTest() {
@@ -461,4 +515,6 @@ export class App {
 }
 
 const app = new App();
-app.render();
+Database.loadPartIcon(undefined).then(() => {
+    app.render();
+});
