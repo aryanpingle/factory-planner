@@ -3,12 +3,18 @@ import { PartId } from "./database-types";
 export class PartFlowDict {
     data: Partial<Record<PartId, number>> = {};
 
+    /**
+     * Adds the part flow information to this PFD
+     */
     _add(partId: PartId, flow: number): void {
         let original = this.data[partId];
         if (original === undefined) original = 0;
         this.data[partId] = original + flow;
     }
 
+    /**
+     * Returns a new PFD with the sum of this and the other part flow information
+     */
     add(partId: PartId, flow: number): PartFlowDict {
         const clone = this.clone();
         clone._add(partId, flow);
