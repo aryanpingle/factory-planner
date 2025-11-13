@@ -1,7 +1,8 @@
-import { RenderingSystem } from "./RenderingSystem";
+import "./style.css";
+import { App } from "./App";
 
-const canvasElement = document.querySelector<HTMLCanvasElement>("#canvas");
+const canvasElement = document.querySelector<HTMLCanvasElement>("canvas");
 
 if (canvasElement) {
-  const renderingSystem = new RenderingSystem(canvasElement);
+  const app = new App(canvasElement);
 }
