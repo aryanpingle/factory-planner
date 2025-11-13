@@ -1,6 +1,5 @@
 import { IOCONSTRUCT_ENTITY_NAME } from "./constants";
-import { Database } from "./database";
-import { Entity, EntityManager } from "./entity/entity";
+import { EntityManager } from "./entity/entity";
 import { IOConstruct } from "./entity/ioconstruct";
 
 /**
@@ -61,7 +60,7 @@ export class SatisfactoryGraph {
             "background-color: white; color: black; font-weight: bold;",
         );
 
-        const info = this.constructs.map((c) => c.getOperatingInformation());
-        console.log(info);
+        // const info = this.constructs.map((c) => c.getOperatingInformation());
+        // console.log(info);
     }
 }

@@ -39,7 +39,7 @@ export abstract class BaseEntity {
     outputSockets: SocketId[];
 
     /** Unique id of the entity, set during runtime. */
-    id?: EntityId;
+    id: EntityId = -1;
 
     /** Coordinates of the center of the entity. */
     position: Point;
