@@ -79,6 +79,21 @@ export class App implements AppData {
         passive: false,
       },
     );
+    // Zoom / Scroll events
+    this.canvasElement.addEventListener(
+      "keypress",
+      (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        if (event.key === "D") {
+          console.log(this);
+        }
+      },
+      {
+        passive: false,
+      },
+    );
   }
 
   translateOnScroll(event: WheelEvent) {

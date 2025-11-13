@@ -63,6 +63,9 @@ export class RenderingSystem {
   }
 
   drawDynamicGrid() {
+    // TODO: Figure out a smarter way to phase out the grid
+    if (this.camera.zoom < 7.5) return;
+
     // Sub grid
     this.ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
     this.ctx.lineWidth = 1 / this.camera.zoom;
