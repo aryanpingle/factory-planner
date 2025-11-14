@@ -4,6 +4,8 @@ import { StateMachine } from "./StateMachine";
 import { AppData } from "./types";
 import { RenderingSystem as Renderer } from "./Renderer";
 import Point from "@mapbox/point-geometry";
+import { getButton } from "./utils";
+import { CustomEventHandlersEventMap } from "./state.types";
 
 export class App implements AppData {
   canvasElement: HTMLCanvasElement;
@@ -29,7 +31,11 @@ export class App implements AppData {
     this.entityManager = new EntityManager();
 
     // Initialize state machine
-    this.stateMachine = new StateMachine(this.camera, this.entityManager);
+    this.stateMachine = new StateMachine(
+      this.camera,
+      this.canvasElement,
+      this.entityManager,
+    );
 
     // Initialize renderer
     this.renderer = new Renderer(
@@ -40,6 +46,7 @@ export class App implements AppData {
     );
 
     this.setupGeneralCanvasEventListeners();
+    this.setupEventListeners();
 
     this.renderer.render();
   }
@@ -49,10 +56,6 @@ export class App implements AppData {
     this.canvasElement.addEventListener(
       "resize",
       () => {
-        console.log(
-          "[CONFIRM THIS] setupCanvasResizeEventListener > this",
-          this,
-        );
         this.camera.screenWidth = this.canvasElement.width;
         this.camera.screenHeight = this.canvasElement.height;
       },
@@ -61,39 +64,74 @@ export class App implements AppData {
       },
     );
     // Zoom / Scroll events
-    this.canvasElement.addEventListener(
+    this.canvasElement.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (event.ctrlKey) {
+        // Zoom using touchpad or ctrl+wheel
+        this.zoomOnScroll(event);
+      } else {
+        // Pan using touchpad or wheel
+        this.translateOnScroll(event);
+      }
+    });
+    // Debug
+    this.canvasElement.addEventListener("keypress", (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (event.key === "D") {
+        console.log(this);
+      }
+    });
+  }
+
+  setupEventListeners() {
+    this.canvasElement.addEventListener("mousedown", (event) => {
+      const button = getButton(event);
+
+      if (button === "LMB") this.stateMachine.onEvent("mousedown_lmb", event);
+      else if (button === "MMB")
+        this.stateMachine.onEvent("mousedown_mmb", event);
+      else if (button === "RMB")
+        this.stateMachine.onEvent("mousedown_rmb", event);
+
+      this.renderer.render();
+    });
+
+    // Whatever can be easily registered, do them in a loop
+    const oneToOneEventNames: Array<keyof CustomEventHandlersEventMap> = [
+      "contextmenu",
+      "drag",
+      "dragend",
+      "dragenter",
+      "dragleave",
+      "dragover",
+      "dragstart",
+      "drop",
+      "keydown",
+      "keyup",
+      // "mousedown_lmb",
+      // "mousedown_mmb",
+      // "mousedown_rmb",
+      "mouseenter",
+      "mouseleave",
+      "mousemove",
+      "mouseout",
+      "mouseover",
+      "mouseup",
+      "resize",
+      "scroll",
+      "scrollend",
       "wheel",
-      (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-
-        if (event.ctrlKey) {
-          // Zoom using touchpad or ctrl+wheel
-          this.zoomOnScroll(event);
-        } else {
-          // Pan using touchpad or wheel
-          this.translateOnScroll(event);
-        }
-      },
-      {
-        passive: false,
-      },
-    );
-    // Zoom / Scroll events
-    this.canvasElement.addEventListener(
-      "keypress",
-      (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-
-        if (event.key === "D") {
-          console.log(this);
-        }
-      },
-      {
-        passive: false,
-      },
-    );
+    ];
+    for (const name of oneToOneEventNames) {
+      this.canvasElement.addEventListener(name, (event) => {
+        this.stateMachine.onEvent(name, event);
+        this.renderer.render();
+      });
+    }
   }
 
   translateOnScroll(event: WheelEvent) {

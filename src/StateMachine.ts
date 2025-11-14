@@ -1,64 +1,29 @@
-import Point from "@mapbox/point-geometry";
 import { AppData } from "./types";
-
-enum StateName {
-  IDLE = "idle",
-  PANNING = "panning",
-}
-
-interface IdleState {
-  name: StateName.IDLE;
-}
-
-interface PanningState {
-  name: StateName.PANNING;
-  startCoords: Point;
-  previousState: State;
-}
-
-type State = IdleState | PanningState;
-
-// reference: GlobalEventHandlersEventMap (typescript)
-interface GlobalEventHandlersEventMap {
-  click: PointerEvent;
-  contextmenu: PointerEvent;
-  drag: DragEvent;
-  dragend: DragEvent;
-  dragenter: DragEvent;
-  dragleave: DragEvent;
-  dragover: DragEvent;
-  dragstart: DragEvent;
-  drop: DragEvent;
-  keydown: KeyboardEvent;
-  keypress: KeyboardEvent;
-  keyup: KeyboardEvent;
-  mousedown: MouseEvent;
-  mouseenter: MouseEvent;
-  mouseleave: MouseEvent;
-  mousemove: MouseEvent;
-  mouseout: MouseEvent;
-  mouseover: MouseEvent;
-  mouseup: MouseEvent;
-  resize: UIEvent;
-  scroll: Event;
-  scrollend: Event;
-  wheel: WheelEvent;
-}
+import {
+  CustomEventHandlersEventMap,
+  IdleState,
+  State,
+  StateName,
+  TransitionCallback,
+} from "./state.types";
+import { transitionTable } from "./TransitionTable";
 
 export class StateMachine {
   camera: AppData["camera"];
+  canvasElement: AppData["canvasElement"];
   entityManager: AppData["entityManager"];
 
   currentState: State;
 
   constructor(
     camera: AppData["camera"],
+    canvasElement: AppData["canvasElement"],
     entityManager: AppData["entityManager"],
   ) {
     this.camera = camera;
+    this.canvasElement = canvasElement;
     this.entityManager = entityManager;
 
-    // Set the current state
     const idleState: IdleState = { name: StateName.IDLE };
     this.currentState = idleState;
   }
@@ -67,12 +32,20 @@ export class StateMachine {
     this.currentState = newState;
   }
 
-  // Something like:
-  onEvent<T extends keyof GlobalEventHandlersEventMap>(
-    eventName: T,
-    event: GlobalEventHandlersEventMap[T],
+  onEvent<TEventName extends keyof CustomEventHandlersEventMap>(
+    eventName: TEventName,
+    event: CustomEventHandlersEventMap[TEventName],
   ) {
-    console.log("Received event:", eventName);
-    console.log("Event:", event);
+    const callbackFn = transitionTable[this.currentState.name][
+      eventName
+    ] as TransitionCallback<StateName, TEventName>;
+
+    if (callbackFn) {
+      callbackFn?.(this.currentState, event, this);
+    } else {
+      console.warn(
+        `No transition function registered for (state=${this.currentState.name}, eventName=${eventName})`,
+      );
+    }
   }
 }

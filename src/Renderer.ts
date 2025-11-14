@@ -29,10 +29,6 @@ export class RenderingSystem {
     this.ctx = this.canvasElement.getContext("2d")!;
   }
 
-  get2dDrawingContext() {
-    return this.canvasElement.getContext("2d");
-  }
-
   render() {
     // STEP: get the current screen space area from CAMERA
     // STEP: Get all entities intersecting the the screen space from ENTITYMANAGER
@@ -60,6 +56,26 @@ export class RenderingSystem {
 
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(10, 10, 20, 20);
+
+    this.drawDebugInfo();
+  }
+
+  drawDebugInfo() {
+    this.ctx.setTransform(...IDENTITY_MATRIX);
+
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, 100, 100);
+
+    this.ctx.fillStyle = "mediumspringgreen";
+    this.ctx.textBaseline = "hanging";
+    this.ctx.textAlign = "left";
+    this.ctx.font = "15px serif";
+    this.ctx.fillText(
+      `State: ${this.stateMachine.currentState.name}`,
+      0,
+      0,
+      100,
+    );
   }
 
   drawDynamicGrid() {

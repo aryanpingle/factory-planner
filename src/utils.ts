@@ -26,9 +26,7 @@ export function getButton(event: MouseEvent): "LMB" | "MMB" | "RMB" | null {
   return null;
 }
 
-/**
- * Get a Point representation of the mouse event's offset coordinates.
- */
+/** Get a Point representation of the mouse event's offset coordinates. */
 export function mouseCoordsAsPoint(event: MouseEvent): Point {
   return new Point(event.offsetX, event.offsetY);
 }
