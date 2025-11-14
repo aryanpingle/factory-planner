@@ -4,7 +4,7 @@ import { snap } from "./utils";
 
 const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0] as const;
 
-const WORLD_GRID_SUB_GAP = 2.5;
+const WORLD_GRID_SUB_GAP = 1;
 const WORLD_GRID_MAIN_GAP = 10;
 
 export class RenderingSystem {
@@ -96,14 +96,18 @@ export class RenderingSystem {
     const camera = this.camera;
 
     const screenTopLeftToWorld = camera.screenToWorldPoint(new Point(0, 0));
-    const screenWidthInWorldSpace = camera.screenWidth / camera.zoom;
-    const screenHeightInWorldSpace = camera.screenHeight / camera.zoom;
+    const screenBottomRightToWorld = camera.screenToWorldPoint(
+      new Point(camera.screenWidth, camera.screenHeight),
+    );
 
     // Horizontal lines
-    const firstY = snap(screenTopLeftToWorld.y, gap);
-    for (let y = firstY; y <= firstY + screenHeightInWorldSpace; y += gap) {
+    for (
+      let y = snap(screenTopLeftToWorld.y, gap);
+      y <= snap(screenBottomRightToWorld.y, gap);
+      y += gap
+    ) {
       const x1 = screenTopLeftToWorld.x;
-      const x2 = x1 + screenWidthInWorldSpace;
+      const x2 = screenBottomRightToWorld.x;
       this.ctx.beginPath();
       this.ctx.moveTo(x1, y);
       this.ctx.lineTo(x2, y);
@@ -111,10 +115,13 @@ export class RenderingSystem {
     }
 
     // Vertical lines
-    const firstX = snap(screenTopLeftToWorld.x, gap);
-    for (let x = firstX; x <= firstX + screenWidthInWorldSpace; x += gap) {
+    for (
+      let x = snap(screenTopLeftToWorld.x, gap);
+      x <= snap(screenBottomRightToWorld.x, gap);
+      x += gap
+    ) {
       const y1 = screenTopLeftToWorld.y;
-      const y2 = y1 + screenWidthInWorldSpace;
+      const y2 = screenBottomRightToWorld.y;
       this.ctx.beginPath();
       this.ctx.moveTo(x, y1);
       this.ctx.lineTo(x, y2);
