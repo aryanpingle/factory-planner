@@ -1,5 +1,6 @@
 import Point from "@mapbox/point-geometry";
 import { AppData } from "./types";
+import { Rectangle } from "./utils";
 
 //  1 S(unit) = 1 W(unit) ( 1x zoom)
 // 10 S(unit) = 1 (Wunit) (10x zoom)
@@ -30,6 +31,10 @@ export class Camera {
     this.zoom = 10;
   }
 
+  getScreenRect(): Rectangle {
+    return new Rectangle(0, 0, this.screenWidth, this.screenHeight);
+  }
+
   screenToWorldPoint(screenPoint: Point): Point {
     const worldPoint = screenPoint.sub(this.position)._div(this.zoom);
     return worldPoint;
@@ -38,6 +43,26 @@ export class Camera {
   worldToScreenPoint(worldPoint: Point): Point {
     const screenPoint = worldPoint.mult(this.zoom)._sub(this.position);
     return screenPoint;
+  }
+
+  screenToWorldRect(screenRect: Rectangle): Rectangle {
+    const topLeft = this.screenToWorldPoint(
+      new Point(screenRect.x1, screenRect.y1),
+    );
+    const bottomRight = this.screenToWorldPoint(
+      new Point(screenRect.x2, screenRect.y2),
+    );
+    return Rectangle.fromTwoPoints(topLeft, bottomRight);
+  }
+
+  worldToScreenRect(worldRect: Rectangle): Rectangle {
+    const topLeft = this.worldToScreenPoint(
+      new Point(worldRect.x1, worldRect.y1),
+    );
+    const bottomRight = this.worldToScreenPoint(
+      new Point(worldRect.x2, worldRect.y2),
+    );
+    return new Rectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
   }
 
   /**

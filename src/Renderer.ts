@@ -30,11 +30,7 @@ export class RenderingSystem {
   }
 
   render() {
-    // STEP: get the current screen space area from CAMERA
-    // STEP: Get all entities intersecting the the screen space from ENTITYMANAGER
-    // STEP: Use information from STATEMANAGER to draw on the HTML canvas
-
-    const { camera } = this;
+    const { camera, entityManager } = this;
 
     // Reset the canvas
     this.ctx.setTransform(...IDENTITY_MATRIX);
@@ -45,22 +41,38 @@ export class RenderingSystem {
 
     this.drawDynamicGrid();
 
-    this.ctx.fillStyle = "red";
-    this.ctx.fillRect(0, 0, 10, 10);
+    this.drawDemoSquare();
 
-    this.ctx.fillStyle = "green";
-    this.ctx.fillRect(10, 0, 20, 10);
+    // Draw entities
+    const entitiesOnScreen = entityManager.getEntitiesIntersectingRect(
+      camera.getScreenRect(),
+    );
+    entitiesOnScreen.forEach((entity) => entity.render(this));
 
-    this.ctx.fillStyle = "blue";
-    this.ctx.fillRect(0, 10, 10, 20);
-
-    this.ctx.fillStyle = "white";
-    this.ctx.fillRect(10, 10, 20, 20);
-
-    this.drawDebugInfo();
+    // TODO: Use information from StateManager to draw on the HTML canvas
   }
 
-  drawDebugInfo() {
+  renderWithDebug() {
+    let startTime = Date.now();
+
+    this.render();
+
+    const renderTimeMs = Date.now() - startTime;
+    this.drawDebugInfo(renderTimeMs);
+  }
+
+  drawDemoSquare() {
+    this.ctx.fillStyle = "red";
+    this.ctx.fillRect(0, 0, 10, 10);
+    this.ctx.fillStyle = "green";
+    this.ctx.fillRect(10, 0, 20, 10);
+    this.ctx.fillStyle = "blue";
+    this.ctx.fillRect(0, 10, 10, 20);
+    this.ctx.fillStyle = "white";
+    this.ctx.fillRect(10, 10, 20, 20);
+  }
+
+  drawDebugInfo(renderTimeMs: number) {
     this.ctx.setTransform(...IDENTITY_MATRIX);
 
     this.ctx.fillStyle = "black";
@@ -76,6 +88,12 @@ export class RenderingSystem {
       0,
       100,
     );
+    this.ctx.fillText(
+      `FPS: ${Math.min(1000, Math.round(1000 / renderTimeMs))}`,
+      0,
+      20,
+      100,
+    );
   }
 
   drawDynamicGrid() {
@@ -88,7 +106,7 @@ export class RenderingSystem {
     this._drawDynamicGrid(WORLD_GRID_SUB_GAP);
     // Main grid
     this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-    this.ctx.lineWidth = 3 / this.camera.zoom;
+    this.ctx.lineWidth = 1 / this.camera.zoom;
     this._drawDynamicGrid(WORLD_GRID_MAIN_GAP);
   }
 

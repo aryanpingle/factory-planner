@@ -6,6 +6,7 @@ import { RenderingSystem as Renderer } from "./Renderer";
 import Point from "@mapbox/point-geometry";
 import { getButton } from "./utils";
 import { CustomEventHandlersEventMap } from "./state.types";
+import { DummyEntity } from "./DummyEntity";
 
 export class App implements AppData {
   canvasElement: HTMLCanvasElement;
@@ -14,21 +15,18 @@ export class App implements AppData {
   stateMachine: StateMachine;
   renderer: Renderer;
 
-  constructor(_canvasElement: HTMLCanvasElement) {
-    // STEP: Setup the canvas element
-    // STEP: Load and setup all entities using ENTITYMANAGER
-    // STEP: Setup events on the canvas with the STATEMANAGER
-    // STEP: Setup the CAMERA
-    // STEP: render()
-
+  constructor(canvasElement: HTMLCanvasElement) {
     // Store the HTML canvas element
-    this.canvasElement = _canvasElement;
+    this.canvasElement = canvasElement;
 
     // Initialize camera
     this.camera = new Camera(this.canvasElement);
 
     // Initialize entity manager
     this.entityManager = new EntityManager();
+
+    // --- DEMO ---
+    this.loadDemoEntities();
 
     // Initialize state machine
     this.stateMachine = new StateMachine(
@@ -46,9 +44,21 @@ export class App implements AppData {
     );
 
     this.setupGeneralCanvasEventListeners();
-    this.setupEventListeners();
+    this.setupStateMachineEventListeners();
 
-    this.renderer.render();
+    this.renderer.renderWithDebug();
+  }
+
+  loadDemoEntities() {
+    const GAP = 10;
+    for (let i = 0; i < 100; ++i) {
+      const dummyEntity = new DummyEntity();
+      dummyEntity.position.x = (dummyEntity.width + GAP) * i;
+      dummyEntity.position.y = 0;
+
+      dummyEntity.id = this.entityManager.createEntityId();
+      this.entityManager.registerEntity(dummyEntity.id, dummyEntity);
+    }
   }
 
   setupGeneralCanvasEventListeners() {
@@ -87,7 +97,7 @@ export class App implements AppData {
     });
   }
 
-  setupEventListeners() {
+  setupStateMachineEventListeners() {
     this.canvasElement.addEventListener("mousedown", (event) => {
       const button = getButton(event);
 
@@ -97,7 +107,7 @@ export class App implements AppData {
       else if (button === "RMB")
         this.stateMachine.onEvent("mousedown_rmb", event);
 
-      this.renderer.render();
+      this.renderer.renderWithDebug();
     });
 
     // Whatever can be easily registered, do them in a loop
@@ -129,7 +139,7 @@ export class App implements AppData {
     for (const name of oneToOneEventNames) {
       this.canvasElement.addEventListener(name, (event) => {
         this.stateMachine.onEvent(name, event);
-        this.renderer.render();
+        this.renderer.renderWithDebug();
       });
     }
   }
@@ -140,7 +150,7 @@ export class App implements AppData {
     const translationPx = new Point(event.deltaX, event.deltaY);
     this.camera.position._sub(translationPx);
     // Re-render
-    this.renderer.render();
+    this.renderer.renderWithDebug();
   }
 
   zoomOnScroll(event: WheelEvent) {
@@ -151,6 +161,6 @@ export class App implements AppData {
     const newZoomLevel = this.camera.zoom * Math.exp(delta * ZOOM_INTENSITY);
     this.camera.zoomAtScreenPoint(newZoomLevel, screenPoint);
     // Re-render
-    this.renderer.render();
+    this.renderer.renderWithDebug();
   }
 }
