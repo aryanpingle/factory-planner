@@ -1,6 +1,6 @@
 import Point from "@mapbox/point-geometry";
 import { AppData } from "./types";
-import { snap } from "./utils";
+import { snap, withMaxDecimal } from "./utils";
 
 const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0] as const;
 
@@ -15,6 +15,8 @@ export class RenderingSystem {
 
   ctx: CanvasRenderingContext2D;
 
+  frameDebugInfo: { renderTimeMs: number; entitiesDrawn: number };
+
   constructor(
     canvasElement: AppData["canvasElement"],
     camera: AppData["camera"],
@@ -25,6 +27,11 @@ export class RenderingSystem {
     this.camera = camera;
     this.entityManager = entityManager;
     this.stateMachine = stateMachine;
+
+    this.frameDebugInfo = {
+      entitiesDrawn: 0,
+      renderTimeMs: 0,
+    };
 
     this.ctx = this.canvasElement.getContext("2d")!;
   }
@@ -41,38 +48,25 @@ export class RenderingSystem {
 
     this.drawDynamicGrid();
 
-    this.drawDemoSquare();
-
     // Draw entities
     const entitiesOnScreen = entityManager.getEntitiesIntersectingRect(
-      camera.getScreenRect(),
+      camera.screenToWorldRect(camera.getScreenRect()),
     );
+    this.frameDebugInfo.entitiesDrawn = entitiesOnScreen.length;
     entitiesOnScreen.forEach((entity) => entity.render(this));
 
     // TODO: Use information from StateManager to draw on the HTML canvas
   }
 
   renderWithDebug() {
-    let startTime = Date.now();
-
+    const renderStartTime = Date.now();
     this.render();
+    this.frameDebugInfo.renderTimeMs = Date.now() - renderStartTime;
 
-    const renderTimeMs = Date.now() - startTime;
-    this.drawDebugInfo(renderTimeMs);
+    this.drawDebugInfo();
   }
 
-  drawDemoSquare() {
-    this.ctx.fillStyle = "red";
-    this.ctx.fillRect(0, 0, 10, 10);
-    this.ctx.fillStyle = "green";
-    this.ctx.fillRect(10, 0, 20, 10);
-    this.ctx.fillStyle = "blue";
-    this.ctx.fillRect(0, 10, 10, 20);
-    this.ctx.fillStyle = "white";
-    this.ctx.fillRect(10, 10, 20, 20);
-  }
-
-  drawDebugInfo(renderTimeMs: number) {
+  drawDebugInfo() {
     this.ctx.setTransform(...IDENTITY_MATRIX);
 
     this.ctx.fillStyle = "black";
@@ -89,9 +83,15 @@ export class RenderingSystem {
       100,
     );
     this.ctx.fillText(
-      `FPS: ${Math.min(1000, Math.round(1000 / renderTimeMs))}`,
+      `Render: ${withMaxDecimal(this.frameDebugInfo.renderTimeMs, 2)}ms`,
       0,
       20,
+      100,
+    );
+    this.ctx.fillText(
+      `Entities: ${this.frameDebugInfo.entitiesDrawn}`,
+      0,
+      40,
       100,
     );
   }

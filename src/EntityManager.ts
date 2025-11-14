@@ -8,7 +8,7 @@ export abstract class Entity<TData extends any = unknown> {
   id: number = -1;
 
   /** Coordinates of the top left of the entity's bounding box. */
-  position: Point = new Point(0, 0);
+  readonly position: Point = new Point(0, 0);
 
   abstract width: number;
   abstract height: number;
@@ -22,12 +22,17 @@ export abstract class Entity<TData extends any = unknown> {
 
   abstract serialize(): string;
 
+  setPosition(x: number, y: number) {
+    this.position.x = x;
+    this.position.y = y;
+    this.computeBoundingRect();
+  }
+
   computeBoundingRect() {
-    this.boundingRect = new Rectangle(
-      this.position.x,
-      this.position.y,
-      this.position.x + this.width,
-      this.position.y + this.height,
+    this.boundingRect = Rectangle.fromTopLeft(
+      this.position,
+      this.width,
+      this.height,
     );
   }
 }

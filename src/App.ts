@@ -26,7 +26,7 @@ export class App implements AppData {
     this.entityManager = new EntityManager();
 
     // --- DEMO ---
-    this.loadDemoEntities();
+    this.load100x100Entites();
 
     // Initialize state machine
     this.stateMachine = new StateMachine(
@@ -49,15 +49,20 @@ export class App implements AppData {
     this.renderer.renderWithDebug();
   }
 
-  loadDemoEntities() {
+  load100x100Entites() {
     const GAP = 10;
-    for (let i = 0; i < 100; ++i) {
-      const dummyEntity = new DummyEntity();
-      dummyEntity.position.x = (dummyEntity.width + GAP) * i;
-      dummyEntity.position.y = 0;
+    const N = 100;
+    for (let x = -N; x <= N; ++x) {
+      for (let y = -N; y <= N; ++y) {
+        const dummyEntity = new DummyEntity();
+        dummyEntity.setPosition(
+          (dummyEntity.width + GAP) * x,
+          (dummyEntity.height + GAP) * y,
+        );
 
-      dummyEntity.id = this.entityManager.createEntityId();
-      this.entityManager.registerEntity(dummyEntity.id, dummyEntity);
+        dummyEntity.id = this.entityManager.createEntityId();
+        this.entityManager.registerEntity(dummyEntity.id, dummyEntity);
+      }
     }
   }
 
