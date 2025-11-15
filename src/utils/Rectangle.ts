@@ -43,7 +43,7 @@ export class Rectangle {
     return new Point(mx, my);
   }
 
-  private _union(rect: Rectangle): void {
+  _union(rect: Rectangle): void {
     this.x1 = Math.min(this.x1, rect.x1);
     this.y1 = Math.min(this.y1, rect.y1);
     this.x2 = Math.max(this.x2, rect.x2);

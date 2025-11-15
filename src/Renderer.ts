@@ -2,6 +2,7 @@ import Point from "@mapbox/point-geometry";
 import { AppData } from "./types";
 import { getMsAndFPS, Rectangle, snap } from "./utils";
 import { StateName } from "./state.types";
+import { EntitySelection } from "./EntitySelection";
 
 const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0] as const;
 
@@ -62,40 +63,58 @@ export class RenderingSystem {
   renderStateSpecificInformation() {
     const currentState = this.stateMachine.currentState;
 
+    // Drawing selection stuff
+
+    this.ctx.lineWidth = 1 / this.camera.zoom;
+    this.ctx.strokeStyle = "hsl(195, 100%, 50%)";
+    this.ctx.fillStyle = "hsla(195, 100%, 50%, 0.1)";
+    // If some entities are selected
     if (
       currentState.name === StateName.SELECTION ||
       currentState.name === StateName.MOVING_SELECTION
     ) {
-      this.ctx.lineWidth = 1 / this.camera.zoom;
-      this.ctx.strokeStyle = "hsl(195, 100%, 50%)";
-      this.ctx.fillStyle = "hsla(195, 100%, 50%, 0.1)";
-
-      // Rect around each selected entity that is present on screen
-      const screenRect = this.camera.screenToWorldRect(
-        this.camera.getScreenRect(),
-      );
-      currentState.selectedEntities.forEach((entity) => {
-        if (entity.boundingRect?.intersects(screenRect)) {
-          this.ctx.strokeRect(...entity.boundingRect.xywh());
-        }
-      });
-
-      // Rect around the union of all selected entities
-      this.ctx.strokeRect(...currentState.selectionRectangle.xywh());
-
-      // Rect around the selection area (if user is selecting)
-      if (
-        currentState.name === StateName.SELECTION &&
-        currentState.isSelecting
-      ) {
-        const selectionRect = Rectangle.fromTwoPoints(
-          currentState.startWorldCoords,
-          currentState.endWorldCoords,
-        );
-        this.ctx.strokeRect(...selectionRect.xywh());
-        this.ctx.fillRect(...selectionRect.xywh());
-      }
+      this.drawEntitySelectionRects(currentState.selection);
+      this.drawUserSelectionRect();
     }
+    // If some entities are selected and user is simply panning around
+    else if (
+      currentState.name === StateName.PANNING &&
+      currentState.previousState.name === StateName.SELECTION
+    ) {
+      this.drawEntitySelectionRects(currentState.previousState.selection);
+      this.drawUserSelectionRect();
+    }
+  }
+
+  /**
+   * If the user is selecting an area of the canvas, draw a rectangle around it.
+   */
+  drawUserSelectionRect() {
+    const currentState = this.stateMachine.currentState;
+
+    if (currentState.name === StateName.SELECTION && currentState.isSelecting) {
+      const selectionRect = Rectangle.fromTwoPoints(
+        currentState.startWorldCoords,
+        currentState.endWorldCoords,
+      );
+      this.ctx.strokeRect(...selectionRect.xywh());
+      this.ctx.fillRect(...selectionRect.xywh());
+    }
+  }
+
+  drawEntitySelectionRects(selection: EntitySelection) {
+    // Rect around each selected entity that is present on screen
+    const screenRect = this.camera.screenToWorldRect(
+      this.camera.getScreenRect(),
+    );
+    selection.entities.forEach((entity) => {
+      if (entity.boundingRect?.intersects(screenRect)) {
+        this.ctx.strokeRect(...entity.boundingRect.xywh());
+      }
+    });
+
+    // Rect around the union of all selected entities
+    this.ctx.strokeRect(...selection.selectionRect.xywh());
   }
 
   renderWithDebug() {

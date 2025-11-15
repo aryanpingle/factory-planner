@@ -1,5 +1,4 @@
 import Point from "@mapbox/point-geometry";
-import { EntityManager } from "./EntityManager";
 import {
   MovingSelectionState,
   PanningState,
@@ -10,6 +9,7 @@ import {
 import { StateMachine } from "./StateMachine";
 import { mouseCoordsAsPoint, PointUtils, Rectangle } from "./utils";
 import { Key } from "./Key";
+import { EntitySelection } from "./EntitySelection";
 
 const KEY_TO_NUDGE_DIRECTION_MAP: Partial<Record<Key, Point>> = {
   [Key.ArrowDown]: new Point(0, +1),
@@ -49,23 +49,21 @@ export const transitionTable: TransitionTable = {
     },
   },
   [StateName.SELECTION]: {
-    keydown(currentState, event, stateMachine) {
+    keydown(currentState, event, _) {
       const key = event.key as Key;
 
       if (KEY_TO_NUDGE_DIRECTION_MAP[key]) {
         const offset = KEY_TO_NUDGE_DIRECTION_MAP[key];
 
         // Update entity positions
-        currentState.selectedEntities.forEach((entity) => {
+        currentState.selection.entities.forEach((entity) => {
           entity.setPosition(
             entity.position.x + offset.x,
             entity.position.y + offset.y,
           );
         });
         // Update selection rectangle
-        currentState.selectionRectangle = EntityManager.getMergedBoundingRect(
-          currentState.selectedEntities,
-        );
+        currentState.selection.calculateRect();
       }
     },
     mousedown_lmb(currentState, event, stateMachine) {
@@ -75,17 +73,28 @@ export const transitionTable: TransitionTable = {
         mouseCoordsAsPoint(event),
       );
 
-      if (currentState.selectionRectangle.containsPoint(mouseCoordsInWorld)) {
+      if (
+        currentState.selection.selectionRect.containsPoint(mouseCoordsInWorld)
+      ) {
         // Transition to moving state
         stateMachine.transition({
           name: StateName.MOVING_SELECTION,
           previousMouseWorldPoint: mouseCoordsInWorld,
-          selectedEntities: currentState.selectedEntities,
-          selectionRectangle: currentState.selectionRectangle,
+          selection: currentState.selection,
         });
       } else {
         beginEntitySelectionOnMousedownLmb(event, stateMachine);
       }
+    },
+    mousedown_mmb(currentState, event, stateMachine) {
+      // Begin panning
+      const screenPoint = mouseCoordsAsPoint(event);
+      const panningState: PanningState = {
+        name: StateName.PANNING,
+        previousState: currentState,
+        previousScreenPoint: screenPoint,
+      };
+      stateMachine.transition(panningState);
     },
     mousemove(currentState, event, stateMachine) {
       const { camera, entityManager } = stateMachine;
@@ -103,13 +112,11 @@ export const transitionTable: TransitionTable = {
 
         // Update selection
         currentState.endWorldCoords = mouseCoordsInWorld;
-        currentState.selectedEntities = selectedEntities;
-        currentState.selectionRectangle =
-          EntityManager.getMergedBoundingRect(selectedEntities);
+        currentState.selection.setEntities(selectedEntities);
       }
     },
     mouseup(currentState, _, stateMachine) {
-      if (currentState.selectedEntities.length === 0) {
+      if (currentState.selection.entities.length === 0) {
         // Nothing was selected, move to idle state
         stateMachine.transition({ name: StateName.IDLE });
       } else {
@@ -127,8 +134,7 @@ export const transitionTable: TransitionTable = {
       stateMachine.transition({
         name: StateName.SELECTION,
         isSelecting: false,
-        selectedEntities: currentState.selectedEntities,
-        selectionRectangle: currentState.selectionRectangle,
+        selection: currentState.selection,
       });
     },
   },
@@ -154,20 +160,20 @@ function beginEntitySelectionOnMousedownLmb(
   if (entitiesAtClickPoint.length) {
     // If an entity exists at the mouse position, select and start moving it
     const topmostEntity = entitiesAtClickPoint[entitiesAtClickPoint.length - 1];
+
+    const selection = new EntitySelection();
+    selection.setEntities([topmostEntity]);
+
     stateMachine.transition({
       name: StateName.MOVING_SELECTION,
       previousMouseWorldPoint: mouseCoordsInWorld,
-      selectedEntities: [topmostEntity],
-      selectionRectangle:
-        topmostEntity.boundingRect ?? new Rectangle(0, 0, 0, 0),
+      selection,
     });
   } else {
     // Move to selection state
     const newState: SelectionState = {
       name: StateName.SELECTION,
-      selectedEntities: entitiesAtClickPoint,
-      selectionRectangle:
-        EntityManager.getMergedBoundingRect(entitiesAtClickPoint),
+      selection: new EntitySelection(),
       isSelecting: true,
       startWorldCoords: mouseCoordsInWorld,
       endWorldCoords: mouseCoordsInWorld,
@@ -186,21 +192,18 @@ function moveSelectionToMouse(
   const mouseCoordsInWorld = camera.screenToWorldPoint(
     mouseCoordsAsPoint(event),
   );
-  const snappedOffset = PointUtils._modPoint(
+  const snappedOffset = PointUtils._roundPoint(
     mouseCoordsInWorld.sub(currentState.previousMouseWorldPoint),
-    1,
   );
 
   // Update entity positions
-  currentState.selectedEntities.forEach((entity) => {
+  const { selection } = currentState;
+  selection.entities.forEach((entity) => {
     entity.setPosition(
       entity.position.x + snappedOffset.x,
       entity.position.y + snappedOffset.y,
     );
   });
-  // Update selection rectangle
-  currentState.selectionRectangle = EntityManager.getMergedBoundingRect(
-    currentState.selectedEntities,
-  );
+  selection.calculateRect();
   currentState.previousMouseWorldPoint._add(snappedOffset);
 }

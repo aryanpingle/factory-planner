@@ -1,7 +1,6 @@
 import Point from "@mapbox/point-geometry";
 import { type StateMachine } from "./StateMachine";
-import { Entity } from "./EntityManager";
-import { Rectangle } from "./utils";
+import { EntitySelection } from "./EntitySelection";
 
 export enum StateName {
   IDLE = "IDLE",
@@ -22,15 +21,13 @@ export interface PanningState {
 
 export interface SelectionStateNotSelecting {
   name: StateName.SELECTION;
-  selectedEntities: Entity[];
-  selectionRectangle: Rectangle;
+  selection: EntitySelection;
   isSelecting: false;
 }
 
 export interface SelectionStateSelecting {
   name: StateName.SELECTION;
-  selectedEntities: Entity[];
-  selectionRectangle: Rectangle;
+  selection: EntitySelection;
   isSelecting: true;
   startWorldCoords: Point;
   endWorldCoords: Point;
@@ -42,8 +39,7 @@ export type SelectionState =
 
 export interface MovingSelectionState {
   name: StateName.MOVING_SELECTION;
-  selectedEntities: Entity[];
-  selectionRectangle: Rectangle;
+  selection: EntitySelection;
   previousMouseWorldPoint: Point;
 }
 

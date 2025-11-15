@@ -47,5 +47,11 @@ export class StateMachine {
         `No transition function registered for (state=${this.currentState.name}, eventName=${eventName})`,
       );
     }
+
+    if (this.currentState.name === StateName.PANNING) {
+      this.canvasElement.style.cursor = "grabbing";
+    } else {
+      this.canvasElement.style.cursor = "auto";
+    }
   }
 }
