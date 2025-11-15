@@ -1,6 +1,7 @@
 import Point from "@mapbox/point-geometry";
 import { AppData } from "./types";
-import { snap, withMaxDecimal } from "./utils";
+import { getMsAndFPS, Rectangle, snap } from "./utils";
+import { StateName } from "./state.types";
 
 const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0] as const;
 
@@ -55,7 +56,40 @@ export class RenderingSystem {
     this.frameDebugInfo.entitiesDrawn = entitiesOnScreen.length;
     entitiesOnScreen.forEach((entity) => entity.render(this));
 
-    // TODO: Use information from StateManager to draw on the HTML canvas
+    this.renderStateSpecificInformation();
+  }
+
+  renderStateSpecificInformation() {
+    const currentState = this.stateMachine.currentState;
+
+    if (currentState.name === StateName.SELECTION) {
+      this.ctx.lineWidth = 1 / this.camera.zoom;
+      this.ctx.strokeStyle = "hsl(195, 100%, 50%)";
+      this.ctx.fillStyle = "hsla(195, 100%, 50%, 0.1)";
+
+      // Rect around each selected entity that is present on screen
+      const screenRect = this.camera.screenToWorldRect(
+        this.camera.getScreenRect(),
+      );
+      currentState.selectedEntities.forEach((entity) => {
+        if (entity.boundingRect?.intersects(screenRect)) {
+          this.ctx.strokeRect(...entity.boundingRect.xywh());
+        }
+      });
+
+      // Rect around the union of all selected entities
+      this.ctx.strokeRect(...currentState.selectionRectangle.xywh());
+
+      if (currentState.isSelecting) {
+        // Rect around the selection area
+        const selectionRect = Rectangle.fromTwoPoints(
+          currentState.startWorldCoords,
+          currentState.endWorldCoords,
+        );
+        this.ctx.strokeRect(...selectionRect.xywh());
+        this.ctx.fillRect(...selectionRect.xywh());
+      }
+    }
   }
 
   renderWithDebug() {
@@ -83,7 +117,7 @@ export class RenderingSystem {
       100,
     );
     this.ctx.fillText(
-      `Render: ${withMaxDecimal(this.frameDebugInfo.renderTimeMs, 2)}ms`,
+      getMsAndFPS(this.frameDebugInfo.renderTimeMs),
       0,
       20,
       100,

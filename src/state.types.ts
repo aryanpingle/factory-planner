@@ -1,9 +1,12 @@
 import Point from "@mapbox/point-geometry";
 import { type StateMachine } from "./StateMachine";
+import { Entity } from "./EntityManager";
+import { Rectangle } from "./utils";
 
 export enum StateName {
   IDLE = "idle",
   PANNING = "panning",
+  SELECTION = "selection",
 }
 
 export interface IdleState {
@@ -16,11 +19,21 @@ export interface PanningState {
   previousState: State;
 }
 
-export type State = IdleState | PanningState;
+export interface SelectionState {
+  name: StateName.SELECTION;
+  selectedEntities: Entity[];
+  selectionRectangle: Rectangle;
+  isSelecting: boolean;
+  startWorldCoords: Point;
+  endWorldCoords: Point;
+}
+
+export type State = IdleState | PanningState | SelectionState;
 
 export interface StateMap {
   [StateName.IDLE]: IdleState;
   [StateName.PANNING]: PanningState;
+  [StateName.SELECTION]: SelectionState;
 }
 
 // reference: GlobalEventHandlersEventMap (typescript)

@@ -106,11 +106,15 @@ export class Rectangle {
     return new Point(mx, my);
   }
 
-  private selfUnion(rect: Rectangle): void {
+  private _union(rect: Rectangle): void {
     this.x1 = Math.min(this.x1, rect.x1);
     this.y1 = Math.min(this.y1, rect.y1);
     this.x2 = Math.max(this.x2, rect.x2);
     this.y2 = Math.max(this.y2, rect.y2);
+  }
+
+  clone(): Rectangle {
+    return new Rectangle(this.x1, this.y1, this.x2, this.y2);
   }
 
   // --- Static Methods
@@ -147,9 +151,9 @@ export class Rectangle {
       return new Rectangle(0, 0, 0, 0);
     }
 
-    const r = rects[0];
+    const r = rects[0].clone();
     for (let i = 1; i < rects.length; ++i) {
-      r.selfUnion(rects[i]);
+      r._union(rects[i]);
     }
 
     return r;
