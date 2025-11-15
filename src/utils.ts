@@ -160,6 +160,18 @@ export class Rectangle {
   }
 }
 
+export namespace PointUtils {
+  export function _modPoint(point: Point, mod: number) {
+    point.x = snap(point.x, mod);
+    point.y = snap(point.y, mod);
+    return point;
+  }
+
+  export function modPoint(point: Point, mod: number) {
+    return _modPoint(point, mod);
+  }
+}
+
 export function getMsAndFPS(ms: number): string {
   const fps = ms === 0 ? Number.POSITIVE_INFINITY : Math.ceil(1000 / ms);
   return `${ms.toFixed(2)}ms (${fps} FPS)`;

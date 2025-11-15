@@ -62,7 +62,10 @@ export class RenderingSystem {
   renderStateSpecificInformation() {
     const currentState = this.stateMachine.currentState;
 
-    if (currentState.name === StateName.SELECTION) {
+    if (
+      currentState.name === StateName.SELECTION ||
+      currentState.name === StateName.MOVING_SELECTION
+    ) {
       this.ctx.lineWidth = 1 / this.camera.zoom;
       this.ctx.strokeStyle = "hsl(195, 100%, 50%)";
       this.ctx.fillStyle = "hsla(195, 100%, 50%, 0.1)";
@@ -80,8 +83,11 @@ export class RenderingSystem {
       // Rect around the union of all selected entities
       this.ctx.strokeRect(...currentState.selectionRectangle.xywh());
 
-      if (currentState.isSelecting) {
-        // Rect around the selection area
+      // Rect around the selection area (if user is selecting)
+      if (
+        currentState.name === StateName.SELECTION &&
+        currentState.isSelecting
+      ) {
         const selectionRect = Rectangle.fromTwoPoints(
           currentState.startWorldCoords,
           currentState.endWorldCoords,

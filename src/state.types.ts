@@ -4,9 +4,10 @@ import { Entity } from "./EntityManager";
 import { Rectangle } from "./utils";
 
 export enum StateName {
-  IDLE = "idle",
-  PANNING = "panning",
-  SELECTION = "selection",
+  IDLE = "IDLE",
+  PANNING = "PANNING",
+  SELECTION = "SELECTION",
+  MOVING_SELECTION = "MOVING_SELECTION",
 }
 
 export interface IdleState {
@@ -19,21 +20,44 @@ export interface PanningState {
   previousState: State;
 }
 
-export interface SelectionState {
+export interface SelectionStateNotSelecting {
   name: StateName.SELECTION;
   selectedEntities: Entity[];
   selectionRectangle: Rectangle;
-  isSelecting: boolean;
+  isSelecting: false;
+}
+
+export interface SelectionStateSelecting {
+  name: StateName.SELECTION;
+  selectedEntities: Entity[];
+  selectionRectangle: Rectangle;
+  isSelecting: true;
   startWorldCoords: Point;
   endWorldCoords: Point;
 }
 
-export type State = IdleState | PanningState | SelectionState;
+export type SelectionState =
+  | SelectionStateSelecting
+  | SelectionStateNotSelecting;
+
+export interface MovingSelectionState {
+  name: StateName.MOVING_SELECTION;
+  selectedEntities: Entity[];
+  selectionRectangle: Rectangle;
+  previousMouseWorldPoint: Point;
+}
+
+export type State =
+  | IdleState
+  | PanningState
+  | SelectionState
+  | MovingSelectionState;
 
 export interface StateMap {
   [StateName.IDLE]: IdleState;
   [StateName.PANNING]: PanningState;
   [StateName.SELECTION]: SelectionState;
+  [StateName.MOVING_SELECTION]: MovingSelectionState;
 }
 
 // reference: GlobalEventHandlersEventMap (typescript)
