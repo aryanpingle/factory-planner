@@ -50,14 +50,14 @@ export class App implements AppData {
   }
 
   load100x100Entites() {
-    const GAP = 10;
+    const EVERY = 5;
     const N = 100;
     for (let x = -N; x <= N; ++x) {
       for (let y = -N; y <= N; ++y) {
         const dummyEntity = new DummyEntity();
         dummyEntity.setPosition(
-          (dummyEntity.width + GAP) * x,
-          (dummyEntity.height + GAP) * y,
+          dummyEntity.width * EVERY * x - 1,
+          dummyEntity.height * EVERY * y - 1,
         );
 
         dummyEntity.id = this.entityManager.createEntityId();
